@@ -1,9 +1,69 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import random
 
 from q1_softmax import softmax
 from q2_sigmoid import sigmoid, sigmoid_grad
 from q2_gradcheck import gradcheck_naive
+
+def softmax_loss(x, y):
+    """
+    Computes the loss and gradient for softmax classification.
+  
+    Inputs:
+    - x: Input data, of shape (N, C) where x[i, j] is the score for the jth class
+      for the ith input.
+    - y: Vector of labels, of shape (N,) where y[i] is the label for x[i] and
+      0 <= y[i] < C
+  
+    Returns a tuple of:
+    - loss: Scalar giving the loss
+    - dx: Gradient of the loss with respect to x
+    """
+    probs = np.exp(x - np.max(x, axis=1, keepdims=True))
+    probs /= np.sum(probs, axis=1, keepdims=True)
+    N = x.shape[0]
+    loss = -np.sum(np.log(probs)*y) / N
+    dx = probs.copy()
+    dx -= y
+    dx /= N
+    return loss, dx
+
+def gradcheck(f, x):
+    """ 
+    Gradient check for a function f 
+    - f should be a function that takes a single argument and outputs the cost
+    - x is the point (numpy array) to check the gradient at
+    """ 
+
+    rndstate = random.getstate()
+    random.setstate(rndstate)  
+    fx = f(x) # Evaluate function value at original point
+    h = 1e-4
+
+    eps = 1e-5
+
+
+    numgrad = np.zeros_like(x)
+    # iterate over all indexes in x
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+
+        # evaluate function at x+h
+        ix = it.multi_index
+        oldval = x[ix]
+        x[ix] = oldval + h # increment by h
+        fxph = f(x) # evalute f(x + h)
+        x[ix] = oldval - h
+        fxmh = f(x) # evaluate f(x - h)
+        x[ix] = oldval # restore
+        numgrad[ix] = (fxph - fxmh) / (2 * h) # the slope
+        it.iternext() # step to next dimension
+
+    return numgrad
+
 
 def forward_backward_prop(data, labels, params, dimensions):
     """ 
@@ -26,11 +86,39 @@ def forward_backward_prop(data, labels, params, dimensions):
     b2 = np.reshape(params[ofs:ofs + Dy], (1, Dy))
 
     ### YOUR CODE HERE: forward propagation
-    raise NotImplementedError
-    ### END YOUR CODE
-    
-    ### YOUR CODE HERE: backward propagation
-    raise NotImplementedError
+    labels = labels.astype("int64")
+    a_1_0 = data.dot(W1) + b1
+    a_1   = sigmoid(a_1_0)
+    a_2_0 = (a_1.dot(W2) + b2)
+
+    loss, dx = softmax_loss(a_2_0, labels)
+
+    gradb2 = np.sum(dx, axis=0, keepdims=True)
+    gradW2 = a_1.T.dot(dx)
+    da_1 = sigmoid_grad(a_1)*dx.dot(W2.T)
+    gradb1 = np.sum(da_1, axis=0, keepdims=True)
+    gradW1 = data.T.dot(da_1)
+
+    # fb2 = lambda x: (softmax_loss(a_1.dot(W2)+x, labels)[0])
+    # print "+++++++++++++++++++++++++++"
+    # print gradb2
+    # print "---------------------------"
+    # print gradcheck(fb2,b2)
+    # print "***************************"
+
+    # fW2 = lambda x: (softmax_loss(a_1.dot(x)+b2, labels)[0])
+    # print "+++++++++++++++++++++++++++"
+    # print gradW2
+    # print "---------------------------"
+    # print gradcheck(fW2,W2)
+    # print "***************************"
+
+    assert(gradb2.shape == b2.shape)
+    assert(gradW2.shape == W2.shape)
+    assert(gradb1.shape == b1.shape)
+    assert(gradW1.shape == W1.shape)
+
+    cost = loss
     ### END YOUR CODE
     
     ### Stack gradients (do not modify)
@@ -73,4 +161,4 @@ def your_sanity_checks():
 
 if __name__ == "__main__":
     sanity_check()
-    your_sanity_checks()
+    # your_sanity_checks()

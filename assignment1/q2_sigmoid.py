@@ -1,15 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 
 def sigmoid(x):
     """
     Compute the sigmoid function for the input here.
     """
-    
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
-    
-    return x
+    return 1.0/(1.0+np.exp(-x))
 
 def sigmoid_grad(f):
     """
@@ -19,7 +17,7 @@ def sigmoid_grad(f):
     """
     
     ### YOUR CODE HERE
-    raise NotImplementedError
+    return f*(1-f)
     ### END YOUR CODE
     
     return f
@@ -55,4 +53,4 @@ def test_sigmoid():
 
 if __name__ == "__main__":
     test_sigmoid_basic();
-    test_sigmoid()
+    # test_sigmoid()

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import random
 
@@ -14,27 +17,54 @@ def gradcheck_naive(f, x):
     fx, grad = f(x) # Evaluate function value at original point
     h = 1e-4
 
-    # Iterate over all indexes in x
+    eps = 1e-5
+
+
+    numgrad = np.zeros_like(x)
+    # iterate over all indexes in x
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
+
+        # evaluate function at x+h
         ix = it.multi_index
+        oldval = x[ix]
+        x[ix] = oldval + h # increment by h
+        fxph = f(x)[0] # evalute f(x + h)
+        x[ix] = oldval - h
+        fxmh = f(x)[0] # evaluate f(x - h)
+        x[ix] = oldval # restore
+        numgrad = (fxph - fxmh) / (2 * h) # the slope
+        it.iternext() # step to next dimension
 
-        ### try modifying x[ix] with h defined above to compute numerical gradients
-        ### make sure you call random.setstate(rndstate) before calling f(x) each time, this will make it 
-        ### possible to test cost functions with built in randomness later
-        ### YOUR CODE HERE:
-        raise NotImplementedError
-        ### END YOUR CODE
-
-        # Compare gradients
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
-        if reldiff > 1e-5:
+        if reldiff > eps or np.isinf(reldiff) or np.isnan(reldiff):
             print "Gradient check failed."
             print "First gradient error found at index %s" % str(ix)
             print "Your gradient: %f \t Numerical gradient: %f" % (grad[ix], numgrad)
             return
+
+    # # Iterate over all indexes in x
+    # it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    # while not it.finished:
+    #     ix = it.multi_index
+
+    #     ### try modifying x[ix] with h defined above to compute numerical gradients
+    #     ### make sure you call random.setstate(rndstate) before calling f(x) each time, this will make it 
+    #     ### possible to test cost functions with built in randomness later
+    #     ### YOUR CODE HERE:
+    #     random.setstate(rndstate)  
     
-        it.iternext() # Step to next dimension
+    #     ### END YOUR CODE
+
+    #     # Compare gradients
+    #     reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
+    #     if reldiff > 1e-5:
+    #         print "Gradient check failed."
+    #         print "First gradient error found at index %s" % str(ix)
+    #         print "Your gradient: %f \t Numerical gradient: %f" % (grad[ix], numgrad)
+    #         return
+    
+    #     it.iternext() # Step to next dimension
 
     print "Gradient check passed!"
 
@@ -46,8 +76,10 @@ def sanity_check():
 
     print "Running sanity checks..."
     gradcheck_naive(quad, np.array(123.456))      # scalar test
-    gradcheck_naive(quad, np.random.randn(3,))    # 1-D test
-    gradcheck_naive(quad, np.random.randn(4,5))   # 2-D test
+    x = np.random.randn(3,)
+    gradcheck_naive(quad, x)    # 1-D test
+    x = np.random.randn(4,5)
+    gradcheck_naive(quad, x)   # 2-D test
     print ""
 
 def your_sanity_checks(): 
@@ -64,4 +96,4 @@ def your_sanity_checks():
 
 if __name__ == "__main__":
     sanity_check()
-    your_sanity_checks()
+    # your_sanity_checks()
