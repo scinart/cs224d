@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import random
 
@@ -20,10 +23,24 @@ def softmax(x):
     written assignment!
     """
 
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
-    
+    # if only one rows
+    # have to do this separately in python
+    # in case input is very large, like [1000, 1001]
+    # I'll substract the median.
+
+    # median assures all arithmetic is at least float64
+
+    if (len(x.shape)==1):
+        x = x - np.median(x)
+        exp_x =  np.exp(x)
+        return exp_x/np.sum(exp_x)
+
+    x = x - np.median(x, axis=1, keepdims=True)
+    exp_x = np.exp(x)
+    sum_exp_x = np.sum(exp_x, axis=1, keepdims=True)
+
+    x = exp_x / sum_exp_x
+
     return x
 
 def test_softmax_basic():
@@ -63,4 +80,4 @@ def test_softmax():
 
 if __name__ == "__main__":
     test_softmax_basic()
-    test_softmax()
+    # test_softmax()
