@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import random
+
 
 from q1_softmax import softmax
 from q2_gradcheck import gradcheck_naive
@@ -10,7 +14,8 @@ def normalizeRows(x):
     # Implement a function that normalizes each row of a matrix to have unit length
     
     ### YOUR CODE HERE
-    raise NotImplementedError
+    lengths = np.sqrt(np.sum(x*x, axis=1, keepdims=True))
+    x /= lengths
     ### END YOUR CODE
     
     return x
@@ -20,7 +25,8 @@ def test_normalize_rows():
     x = normalizeRows(np.array([[3.0,4.0],[1, 2]])) 
     # the result should be [[0.6, 0.8], [0.4472, 0.8944]]
     print x
-    assert (x.all() == np.array([[0.6, 0.8], [0.4472, 0.8944]]).all())
+    # assert (x.all() == np.array([[0.6, 0.8], [0.4472, 0.8944]]).all())
+    assert np.amax(x-np.array([[0.6, 0.8], [0.4472136, 0.89442719]]))<1e-6
     print ""
 
 def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
@@ -195,4 +201,4 @@ def test_word2vec():
 
 if __name__ == "__main__":
     test_normalize_rows()
-    test_word2vec()
+    # test_word2vec()

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Save parameters every a few SGD iterations as fail-safe
 SAVE_PARAMS_EVERY = 1000
 
@@ -75,7 +78,9 @@ def sgd(f, x0, step, iterations, postprocessing = None, useSaved = False, PRINT_
 
         cost = None
         ### YOUR CODE HERE
-        raise NotImplementedError
+        cost, grad = f(x)
+        x -= step*grad
+        x = postprocessing(x)
         ### END YOUR CODE
         
         if iter % PRINT_EVERY == 0:
@@ -125,4 +130,4 @@ def your_sanity_checks():
 
 if __name__ == "__main__":
     sanity_check();
-    your_sanity_checks();
+    # your_sanity_checks();
