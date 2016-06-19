@@ -28,10 +28,8 @@ def softmax(x):
     # in case input is very large, like [1000, 1001]
     # I'll substract the median.
 
-    # median assures all arithmetic is at least float64
-
     if (len(x.shape)==1):
-        x = x - np.median(x)
+        x = x - np.amax(x)
         exp_x =  np.exp(x)
         return exp_x/np.sum(exp_x)
 

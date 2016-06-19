@@ -5,6 +5,14 @@ import numpy as np
 import random
 
 # First implement a gradient checker by filling in the following functions
+
+def save_random_state():
+    return (random.getstate(), np.random.get_state())
+def load_random_state(rnd_tuple):
+    rndstate, np_rndstate = rnd_tuple
+    random.setstate(rndstate)
+    np.random.set_state(np_rndstate)
+
 def gradcheck_naive(f, x):
     """ 
     Gradient check for a function f 
@@ -12,13 +20,13 @@ def gradcheck_naive(f, x):
     - x is the point (numpy array) to check the gradient at
     """ 
 
-    rndstate = random.getstate()
-    random.setstate(rndstate)  
+    rnd_tuple = save_random_state()
+
     fx, grad = f(x) # Evaluate function value at original point
+    load_random_state(rnd_tuple)
+
     h = 1e-4
-
     eps = 1e-5
-
 
     numgrad = np.zeros_like(x)
     # iterate over all indexes in x
@@ -30,11 +38,16 @@ def gradcheck_naive(f, x):
         oldval = x[ix]
         x[ix] = oldval + h # increment by h
         fxph = f(x)[0] # evalute f(x + h)
+
+        # f may change random state.
+        # we have to set it back.
+        load_random_state(rnd_tuple)
+
         x[ix] = oldval - h
         fxmh = f(x)[0] # evaluate f(x - h)
+        load_random_state(rnd_tuple)
         x[ix] = oldval # restore
         numgrad = (fxph - fxmh) / (2 * h) # the slope
-        it.iternext() # step to next dimension
 
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
         if reldiff > eps or np.isinf(reldiff) or np.isnan(reldiff):
@@ -43,28 +56,7 @@ def gradcheck_naive(f, x):
             print "Your gradient: %f \t Numerical gradient: %f" % (grad[ix], numgrad)
             return
 
-    # # Iterate over all indexes in x
-    # it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
-    # while not it.finished:
-    #     ix = it.multi_index
-
-    #     ### try modifying x[ix] with h defined above to compute numerical gradients
-    #     ### make sure you call random.setstate(rndstate) before calling f(x) each time, this will make it 
-    #     ### possible to test cost functions with built in randomness later
-    #     ### YOUR CODE HERE:
-    #     random.setstate(rndstate)  
-    
-    #     ### END YOUR CODE
-
-    #     # Compare gradients
-    #     reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
-    #     if reldiff > 1e-5:
-    #         print "Gradient check failed."
-    #         print "First gradient error found at index %s" % str(ix)
-    #         print "Your gradient: %f \t Numerical gradient: %f" % (grad[ix], numgrad)
-    #         return
-    
-    #     it.iternext() # Step to next dimension
+        it.iternext() # Step to next dimension
 
     print "Gradient check passed!"
 
