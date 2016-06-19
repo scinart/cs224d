@@ -8,6 +8,7 @@ import warnings
 from q1_softmax import softmax
 from q2_gradcheck import gradcheck_naive
 from q2_sigmoid import sigmoid, sigmoid_grad
+from oy_utils import Timer
 
 def normalizeRows(x):
     """ Row normalization function """
@@ -125,7 +126,7 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset, K=10):
     # assignment!
     
     ### YOUR CODE HERE
-    warnings.warn("This implementation is slow, using for loops")
+    # warnings.warn("This implementation is slow, using for loops")
     N = len(predicted)
 
     # make predicted a 2D array, to make transpose work.
@@ -133,6 +134,7 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset, K=10):
 
     debug = False
     sigmoid_uwt_vc = sigmoid(outputVectors.dot(predicted2D.T))
+    minus_sigmoid_uwt_vc = 1-sigmoid_uwt_vc
 
     cost = 0
     gradPred = np.zeros_like(predicted)
@@ -152,10 +154,20 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset, K=10):
                 rand_k = dataset.sampleTokenIdx()
             rand_ks.append(rand_k)
 
-        for rand_k in rand_ks:
-            cost -= np.log(1-sigmoid_uwt_vc[rand_k])
-            gradPred -= 1/(1-sigmoid_uwt_vc[rand_k])*sigmoid_grad(1-sigmoid_uwt_vc[rand_k])*outputVectors[rand_k,:]*(-1)
-            grad[rand_k,:] -= 1/(1-sigmoid_uwt_vc[rand_k])*sigmoid_grad(1-sigmoid_uwt_vc[rand_k])*predicted*(-1)
+        # for rand_k in rand_ks:
+        #     cost -= np.log(1-sigmoid_uwt_vc[rand_k])
+        #     gradPred -= 1/(1-sigmoid_uwt_vc[rand_k])*sigmoid_grad(1-sigmoid_uwt_vc[rand_k])*outputVectors[rand_k,:]*(-1)
+        #     grad[rand_k,:] -= 1/(1-sigmoid_uwt_vc[rand_k])*sigmoid_grad(1-sigmoid_uwt_vc[rand_k])*predicted*(-1)
+
+        # This vectorization saves 50%~60% execution time in test_word2vec
+        cost -= np.sum(np.log(minus_sigmoid_uwt_vc[rand_ks]))
+        gradPred -= np.sum((1/(minus_sigmoid_uwt_vc[rand_ks])*sigmoid_grad(minus_sigmoid_uwt_vc[rand_ks]))*outputVectors[rand_ks,:]*(-1), axis=0)
+        tmp = (1/(minus_sigmoid_uwt_vc[rand_ks])*sigmoid_grad(minus_sigmoid_uwt_vc[rand_ks]))*predicted*(-1)
+
+        # TODO:
+        # Now I don't know how to implement this.
+        for idx, rand_k in enumerate(rand_ks):
+            grad[rand_k] -= tmp[idx]
 
     cost /= N
     gradPred /= N
@@ -296,11 +308,15 @@ def test_word2vec():
     dummy_vectors = normalizeRows(np.random.randn(10,3))
     dummy_tokens = dict([("a",0), ("b",1), ("c",2),("d",3),("e",4)])
     print "==== Gradient check for skip-gram ===="
-    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5), dummy_vectors)
-    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient), dummy_vectors)
+    with Timer('skipgram softmaxCostAndGradient'):
+        gradcheck_naive(lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5), dummy_vectors)
+    with Timer('skipgram negSamplingCostAndGradient'):
+        gradcheck_naive(lambda vec: word2vec_sgd_wrapper(skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient), dummy_vectors)
     print "\n==== Gradient check for CBOW      ===="
-    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5), dummy_vectors)
-    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient), dummy_vectors)
+    with Timer('cbow softmaxCostAndGradient'):
+        gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5), dummy_vectors)
+    with Timer('cbow negSamplingCostAndGradient'):
+        gradcheck_naive(lambda vec: word2vec_sgd_wrapper(cbow, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient), dummy_vectors)
 
     # print "\n=== Results ==="
     # print skipgram("c", 3, ["a", "b", "e", "d", "b", "c"], dummy_tokens, dummy_vectors[:5,:], dummy_vectors[5:,:], dataset)
