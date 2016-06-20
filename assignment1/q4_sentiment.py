@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -10,7 +13,7 @@ from q4_softmaxreg import softmaxRegression, getSentenceFeature, accuracy, softm
 # NOTE: fill in one more "your code here" below before running!
 REGULARIZATION = None   # Assign a list of floats in the block below
 ### YOUR CODE HERE
-raise NotImplementedError
+REGULARIZATION = [ 0.01, 0.1, 1 ]
 ### END YOUR CODE
 
 # Load the dataset
@@ -51,7 +54,7 @@ for regularization in REGULARIZATION:
 
     # We will do batch optimization
     weights = sgd(lambda weights: softmax_wrapper(trainFeatures, trainLabels, 
-        weights, regularization), weights, 3.0, 10000, PRINT_EVERY=100)
+        weights, regularization), weights, 3.0*0.1, 1000, PRINT_EVERY=100)
 
     # Test on train set
     _, _, pred = softmaxRegression(trainFeatures, trainLabels, weights)
@@ -84,9 +87,13 @@ print ""
 # Pick the best regularization parameters
 BEST_REGULARIZATION = None
 BEST_WEIGHTS = None
-
+BEST_DEV_ACCURACY = None
 ### YOUR CODE HERE 
-raise NotImplementedError
+for i in results:
+    if BEST_DEV_ACCURACY == None or i["dev"]>BEST_DEV_ACCURACY:
+        BEST_DEV_ACCURACY = i["dev"]
+        BEST_WEIGHTS = i["weights"]
+        BEST_REGULARIZATION = i["reg"]
 ### END YOUR CODE
 
 # Test your findings on the test set

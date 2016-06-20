@@ -66,7 +66,7 @@ def softmaxRegression(features, labels, weights, regularization = 0.0, nopredict
     else:
         x = features.dot(weights)
 
-    pred = np.argmax(prob, axis=0)
+    pred = np.argmax(prob, axis=1)
     y = labels
     probs = np.exp(x - np.max(x, axis=1, keepdims=True))
     probs /= np.sum(probs, axis=1, keepdims=True)
@@ -76,6 +76,7 @@ def softmaxRegression(features, labels, weights, regularization = 0.0, nopredict
     dx /= N
 
     grad = features.T.dot(dx) + regularization*weights
+
     ### END YOUR CODE
     
     if nopredictions:
