@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import random
 import numpy as np
 from cs224d.data_utils import *
@@ -26,7 +29,7 @@ wordVectors = np.concatenate(((np.random.rand(nWords, dimVectors) - .5) / \
 wordVectors0 = sgd(
     lambda vec: word2vec_sgd_wrapper(skipgram, tokens, vec, dataset, C, 
     	negSamplingCostAndGradient), 
-    wordVectors, 0.3, 40000, None, True, PRINT_EVERY=10)
+    wordVectors, 30, 40000, None, True, PRINT_EVERY=10)
 print "sanity check: cost at convergence should be around or below 10"
 
 # sum the input and output word vectors

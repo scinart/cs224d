@@ -142,11 +142,12 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset, K=10):
 
     # I don't know how to vectorize this.
     # it runs very slow.
+    # cost -= np.sum(np.log(sigmoid_uwt_vc[target]), axis=0)
     for i in target:
         cost -= np.log(sigmoid_uwt_vc[i])
         gradPred -= 1/sigmoid_uwt_vc[i]*sigmoid_grad(sigmoid_uwt_vc[i])*outputVectors[i,:]
         grad[i,:] -= 1/sigmoid_uwt_vc[i]*sigmoid_grad(sigmoid_uwt_vc[i])*predicted
-
+    for i in target:
         rand_ks = []
         for j in range(K):
             rand_k = i
@@ -162,12 +163,16 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset, K=10):
         # This vectorization saves 50%~60% execution time in test_word2vec
         cost -= np.sum(np.log(minus_sigmoid_uwt_vc[rand_ks]))
         gradPred -= np.sum((1/(minus_sigmoid_uwt_vc[rand_ks])*sigmoid_grad(minus_sigmoid_uwt_vc[rand_ks]))*outputVectors[rand_ks,:]*(-1), axis=0)
-        tmp = (1/(minus_sigmoid_uwt_vc[rand_ks])*sigmoid_grad(minus_sigmoid_uwt_vc[rand_ks]))*predicted*(-1)
 
-        # TODO:
-        # Now I don't know how to implement this.
-        for idx, rand_k in enumerate(rand_ks):
-            grad[rand_k] -= tmp[idx]
+        # tmp = (1/(minus_sigmoid_uwt_vc[rand_ks])*sigmoid_grad(minus_sigmoid_uwt_vc[rand_ks]))*predicted*(-1)
+        # # TODO:
+        # # Now I don't know how to implement this.
+        # for idx, rand_k in enumerate(rand_ks):
+        #     grad[rand_k] -= tmp[idx]
+
+        tmp = -1/(minus_sigmoid_uwt_vc)*sigmoid_grad(minus_sigmoid_uwt_vc)*predicted
+        for rand_k in rand_ks:
+            grad[rand_k] -= tmp[rand_k]
 
     cost /= N
     gradPred /= N
