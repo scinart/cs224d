@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import tensorflow as tf
 
@@ -22,7 +25,9 @@ def softmax(x):
   """
 
   ### YOUR CODE HERE
-  raise NotImplementedError
+  probs = tf.exp(x - tf.reduce_max(x,1,keep_dims=True))
+  probs /= tf.reduce_sum(probs, 1, keep_dims=True)
+  out = probs
   ### END YOUR CODE
   
   return out 
@@ -50,7 +55,7 @@ def cross_entropy_loss(y, yhat):
           tensor in the problem.
   """
   ### YOUR CODE HERE
-  raise NotImplementedError
+  return tf.reduce_sum(tf.log(yhat)*(-1)*tf.to_float(y))
   ### END YOUR CODE
   return out
 
@@ -90,6 +95,7 @@ def test_cross_entropy_loss_basic():
       tf.convert_to_tensor(yhat, dtype=tf.float32))
   with tf.Session():
     test1 = test1.eval()
+  print test1
   result = -3 * np.log(.5)
   assert np.amax(np.fabs(test1 - result)) <= 1e-6
   print "Basic (non-exhaustive) cross-entropy tests pass\n"
