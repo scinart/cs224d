@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 import math
 import numpy as np
@@ -19,7 +22,7 @@ class Config(object):
   n_features = 100
   n_classes = 5
   # You may adjust the max_epochs to ensure convergence.
-  max_epochs = 50
+  max_epochs = 1000
   # You may adjust this learning rate to ensure convergence.
   lr = 1e-4 
 
@@ -54,7 +57,8 @@ class SoftmaxModel(Model):
     (Don't change the variable names)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    self.input_placeholder = tf.placeholder(tf.float32, [self.config.batch_size, self.config.n_features])
+    self.labels_placeholder = tf.placeholder(tf.int32, [self.config.batch_size, self.config.n_classes])
     ### END YOUR CODE
 
   def create_feed_dict(self, input_batch, label_batch):
@@ -79,7 +83,9 @@ class SoftmaxModel(Model):
       feed_dict: The feed dictionary mapping from placeholders to values.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    feed_dict = {}
+    feed_dict[self.input_placeholder] = input_batch
+    feed_dict[self.labels_placeholder] = label_batch
     ### END YOUR CODE
     return feed_dict
 
@@ -103,7 +109,7 @@ class SoftmaxModel(Model):
       train_op: The Op for training.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    train_op = tf.train.GradientDescentOptimizer(self.config.lr).minimize(loss)
     ### END YOUR CODE
     return train_op
 
@@ -127,7 +133,12 @@ class SoftmaxModel(Model):
       out: A tensor of shape (batch_size, n_classes)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    x = input_data
+    W = tf.Variable(tf.zeros([self.config.n_features, self.config.n_classes]))
+    b = tf.Variable(tf.zeros([self.config.n_classes]))
+
+    out = softmax(tf.add(tf.matmul(x,W),b))
+    # out = softmax(tf.add(tf.matmul(x,W),b))
     ### END YOUR CODE
     return out
 
@@ -142,7 +153,7 @@ class SoftmaxModel(Model):
       loss: A 0-d tensor (scalar)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    loss = cross_entropy_loss(self.labels_placeholder, pred)
     ### END YOUR CODE
     return loss
 
