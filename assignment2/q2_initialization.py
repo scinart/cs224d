@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import tensorflow as tf
 
@@ -24,7 +27,8 @@ def xavier_weight_init():
       out: tf.Tensor of specified shape sampled from Xavier distribution.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    eps = np.sqrt(6) / np.sqrt(np.sum(shape))
+    out = tf.random_uniform(shape, minval=-eps, maxval=eps)
     ### END YOUR CODE
     return out
   # Returns defined initializer function.
@@ -54,7 +58,7 @@ def test_initialization():
   """
   print "Running your tests..."
   ### YOUR CODE HERE
-  raise NotImplementedError
+  print "ha, ha"
   ### END YOUR CODE  
 
 if __name__ == "__main__":
